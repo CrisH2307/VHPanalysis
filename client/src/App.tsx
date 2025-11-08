@@ -40,7 +40,7 @@ const App = () => {
   };
 
  return (
-  <div className="flex min-h-screen flex-col bg-slate-800"> {/* <-- changed from bg-slate-100 */}
+  <div className="flex min-h-screen flex-col bg-slate-800">
     <LayoutHeader
       city={selectedCity}
       date={selectedDate}

@@ -29,15 +29,32 @@ const LayoutHeader = ({ city, date, onCitySubmit, onDateChange }: LayoutHeaderPr
 
   return (
     <header className="flex items-center gap-6 border-b border-slate-600 bg-slate-800 px-6 py-4 shadow-md">
-      <div className="text-lg font-bold tracking-wider text-white">LOGO</div>
 
+      {/* Logo + Title Section */}
+      <div className="flex items-center gap-3">
+        <div className="h-14 w-14 flex items-center justify-center">
+          <img
+            src="/Logo.png"
+            alt="VHPA Logo"
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <div className="text-xl font-bold tracking-wide text-white">VHPA</div>
+          <div className="text-sm text-slate-400">Vegetation Heat Propagation Analysis</div>
+        </div>
+      </div>
+
+
+      {/* Search Bar + Date Picker + Button */}
       <div className="ml-auto flex flex-wrap items-center gap-4">
-        {/* Modern Search Bar */}
+
+        {/* City Search */}
         <form
           onSubmit={handleSubmit}
           className="relative flex w-64 items-center rounded-md bg-slate-700 focus-within:ring-2 focus-within:ring-blue-500"
         >
-          {/* Search SVG */}
           <svg
             className="absolute left-3 h-4 w-4 text-slate-400"
             fill="none"
@@ -45,13 +62,11 @@ const LayoutHeader = ({ city, date, onCitySubmit, onDateChange }: LayoutHeaderPr
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"
             />
           </svg>
+
           <input
             type="text"
             placeholder="Search city..."
@@ -60,9 +75,9 @@ const LayoutHeader = ({ city, date, onCitySubmit, onDateChange }: LayoutHeaderPr
             className={inputClass}
           />
         </form>
-        {/* Modern Date Picker */}
+
+        {/* Date Picker */}
         <div className="relative flex items-center rounded-md bg-slate-700 focus-within:ring-2 focus-within:ring-blue-500">
-          {/* Calendar SVG */}
           <svg
             className="absolute left-3 h-4 w-4 text-slate-400"
             fill="none"
@@ -70,13 +85,11 @@ const LayoutHeader = ({ city, date, onCitySubmit, onDateChange }: LayoutHeaderPr
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
+
           <input
             type="date"
             value={date}
@@ -85,11 +98,15 @@ const LayoutHeader = ({ city, date, onCitySubmit, onDateChange }: LayoutHeaderPr
           />
         </div>
 
-        <button type="button" onClick={() => onCitySubmit(searchValue.trim())} className={activeButtonClass}>
+        <button
+          type="button"
+          onClick={() => onCitySubmit(searchValue.trim())}
+          className={activeButtonClass}
+        >
           Search
         </button>
-        
       </div>
+
     </header>
   );
 };

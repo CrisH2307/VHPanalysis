@@ -12,6 +12,7 @@ if __package__ is None or __package__ == "":
         sys.path.insert(0, str(project_root))
     from service.routes.imagery_routes import imagery_bp
     from service.imagery.session_store import InMemorySessionDataStore, set_session_data_store
+    from service.routes.simulate_routes import simulate_bp
 else:
     from .routes.imagery_routes import imagery_bp
     from .imagery.session_store import InMemorySessionDataStore, set_session_data_store
@@ -29,6 +30,7 @@ def create_app() -> Flask:
     app.extensions["session_data_store"] = session_store
 
     app.register_blueprint(imagery_bp)
+    app.register_blueprint(simulate_bp)
 
     @app.before_request
     def ensure_session_id() -> None:

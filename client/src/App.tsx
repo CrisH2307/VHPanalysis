@@ -58,7 +58,7 @@ const App = () => {
         onSetPlacingMode={handleSetPlacingMode}
         onClearAll={handleClearAll}
       />
-      <main className="grid flex-1 gap-5 p-6 md:grid-cols-3">
+      <main className="grid flex-1 gap-2 p-2 md:grid-cols-3">
         <MapPanel
           cityName={selectedCity}
           date={selectedDate}

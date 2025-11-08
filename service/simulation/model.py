@@ -68,6 +68,7 @@ def describe_split(name: str, tensors: np.ndarray) -> None:
 
 def main() -> None:
     default_path = Path(__file__).resolve().parent / "data" / "data_samples.pkl"
+    checkpoint_path = Path(__file__).resolve().parent / "checkpoints"
     samples_path = default_path
 
     if not samples_path.exists():
@@ -112,14 +113,23 @@ def main() -> None:
         train_x,
         train_y,
         epochs=50,
-        batch_size=32,
+        batch_size=4,
         validation_data=(test_x, test_y),
         verbose=1,
         callbacks=[
             tf.keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=5, min_lr=1e-6),
-            tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
+            tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True),
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=checkpoint_path / "epoch_{epoch:02d}.weights.h5",
+                save_best_only=True,
+                save_weights_only=True,
+                save_freq="epoch"
+            )
         ]
     )
+
+    # Save keras model weights
+    model.save_weights("model_weights.h5")
 
 
 if __name__ == "__main__":

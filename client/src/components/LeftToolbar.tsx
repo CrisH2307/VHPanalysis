@@ -1,13 +1,24 @@
-import * as GiIcons from 'react-icons/gi';
-import * as MdIcons from 'react-icons/md';
-import * as IoIcons from 'react-icons/io';
+import {
+  GiPineTree,
+  GiFlowerPot,
+  GiGrass,
+  GiModernCity,
+  GiRoad,
+  GiWaterDrop
+} from 'react-icons/gi';
+import { MdClose } from 'react-icons/md';
+import { IoMdRefresh, IoMdPlay } from 'react-icons/io';
 
-type StickerType = 'tree' | 'shrub' | 'grass' | 'building' | 'road' | 'waterbody';
-type PlacingMode = StickerType | `remove${Capitalize<StickerType>}` | null;
-
-import * as GiIcons from 'react-icons/gi';
-import * as MdIcons from 'react-icons/md';
-import * as IoIcons from 'react-icons/io';
+// Type assertion to fix react-icons v5 TypeScript issue
+const PineTree = GiPineTree as any;
+const FlowerPot = GiFlowerPot as any;
+const Grass = GiGrass as any;
+const ModernCity = GiModernCity as any;
+const Road = GiRoad as any;
+const WaterDrop = GiWaterDrop as any;
+const Close = MdClose as any;
+const Refresh = IoMdRefresh as any;
+const Play = IoMdPlay as any;
 
 type StickerType = 'tree' | 'shrub' | 'grass' | 'building' | 'road' | 'waterbody';
 type PlacingMode = StickerType | `remove${Capitalize<StickerType>}` | null;
@@ -44,7 +55,7 @@ const LeftToolbar = ({
           title="Add tree"
           onClick={() => onSetPlacingMode(placingMode === 'tree' ? null : 'tree')}
         >
-          <GiPineTree className="h-6 w-6 text-green-500" />
+          <PineTree className="h-6 w-6 text-green-500" />
         </button>
         <button
           type="button"
@@ -54,8 +65,8 @@ const LeftToolbar = ({
           onClick={() => onSetPlacingMode(placingMode === 'removeTree' ? null : 'removeTree')}
         >
           <div className="relative">
-            <GiPineTree className="h-6 w-6 text-red-500" />
-            <MdClose className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
+            <PineTree className="h-6 w-6 text-red-500" />
+            <Close className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
           </div>
         </button>
       </div>
@@ -69,7 +80,7 @@ const LeftToolbar = ({
           title="Add shrub"
           onClick={() => onSetPlacingMode(placingMode === 'shrub' ? null : 'shrub')}
         >
-          <GiFlowerPot className="h-6 w-6 text-green-400" />
+          <FlowerPot className="h-6 w-6 text-green-400" />
         </button>
         <button
           type="button"
@@ -79,8 +90,8 @@ const LeftToolbar = ({
           onClick={() => onSetPlacingMode(placingMode === 'removeShrub' ? null : 'removeShrub')}
         >
           <div className="relative">
-            <GiFlowerPot className="h-6 w-6 text-red-500" />
-            <MdClose className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
+            <FlowerPot className="h-6 w-6 text-red-500" />
+            <Close className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
           </div>
         </button>
       </div>
@@ -94,7 +105,7 @@ const LeftToolbar = ({
           title="Add grass"
           onClick={() => onSetPlacingMode(placingMode === 'grass' ? null : 'grass')}
         >
-          <GiGrass className="h-6 w-6 text-green-300" />
+          <Grass className="h-6 w-6 text-green-300" />
         </button>
         <button
           type="button"
@@ -104,8 +115,8 @@ const LeftToolbar = ({
           onClick={() => onSetPlacingMode(placingMode === 'removeGrass' ? null : 'removeGrass')}
         >
           <div className="relative">
-            <GiGrass className="h-6 w-6 text-red-500" />
-            <MdClose className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
+            <Grass className="h-6 w-6 text-red-500" />
+            <Close className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
           </div>
         </button>
       </div>
@@ -119,7 +130,7 @@ const LeftToolbar = ({
           title="Add building"
           onClick={() => onSetPlacingMode(placingMode === 'building' ? null : 'building')}
         >
-          <GiModernCity className="h-6 w-6 text-slate-400" />
+          <ModernCity className="h-6 w-6 text-slate-400" />
         </button>
         <button
           type="button"
@@ -129,8 +140,8 @@ const LeftToolbar = ({
           onClick={() => onSetPlacingMode(placingMode === 'removeBuilding' ? null : 'removeBuilding')}
         >
           <div className="relative">
-            <GiModernCity className="h-6 w-6 text-red-500" />
-            <MdClose className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
+            <ModernCity className="h-6 w-6 text-red-500" />
+            <Close className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
           </div>
         </button>
       </div>
@@ -144,7 +155,7 @@ const LeftToolbar = ({
           title="Add road"
           onClick={() => onSetPlacingMode(placingMode === 'road' ? null : 'road')}
         >
-          <GiRoad className="h-6 w-6 text-slate-500" />
+          <Road className="h-6 w-6 text-slate-500" />
         </button>
         <button
           type="button"
@@ -154,8 +165,8 @@ const LeftToolbar = ({
           onClick={() => onSetPlacingMode(placingMode === 'removeRoad' ? null : 'removeRoad')}
         >
           <div className="relative">
-            <GiRoad className="h-6 w-6 text-red-500" />
-            <MdClose className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
+            <Road className="h-6 w-6 text-red-500" />
+            <Close className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
           </div>
         </button>
       </div>
@@ -169,7 +180,7 @@ const LeftToolbar = ({
           title="Add waterbody"
           onClick={() => onSetPlacingMode(placingMode === 'waterbody' ? null : 'waterbody')}
         >
-          <GiWaterDrop className="h-6 w-6 text-blue-500" />
+          <WaterDrop className="h-6 w-6 text-blue-500" />
         </button>
         <button
           type="button"
@@ -179,8 +190,8 @@ const LeftToolbar = ({
           onClick={() => onSetPlacingMode(placingMode === 'removeWaterbody' ? null : 'removeWaterbody')}
         >
           <div className="relative">
-            <GiWaterDrop className="h-6 w-6 text-red-500" />
-            <MdClose className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
+            <WaterDrop className="h-6 w-6 text-red-500" />
+            <Close className="absolute -right-1 -top-1 h-3 w-3 text-white bg-red-600 rounded-full" />
           </div>
         </button>
       </div>
@@ -196,7 +207,7 @@ const LeftToolbar = ({
           title="Clear all"
           onClick={onClearAll}
         >
-          <IoMdRefresh className="h-6 w-6" />
+          <Refresh className="h-6 w-6" />
         </button>
         <button
           type="button"
@@ -205,7 +216,7 @@ const LeftToolbar = ({
           title="Toggle simulation view"
           onClick={onToggleSimulation}
         >
-          <IoMdPlay className="h-6 w-6" />
+          <Play className="h-6 w-6" />
         </button>
       </div>
     </aside>

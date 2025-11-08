@@ -1,11 +1,15 @@
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, OverlayView } from '@react-google-maps/api';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import * as GiIcons from 'react-icons/gi';
+
+type StickerType = 'tree' | 'shrub' | 'grass' | 'building' | 'road' | 'waterbody';
+type PlacingMode = StickerType | `remove${Capitalize<StickerType>}` | null;
 
 type Sticker = {
   id: string;
   lat: number;
   lng: number;
-  type: 'tree' | 'house';
+  type: StickerType;
 };
 
 type ImageryResponse = {
@@ -19,8 +23,8 @@ type MapPanelProps = {
   date?: string;
   imageryType?: 'ndvi' | 'heat';
   className?: string;
-  placingMode: 'tree' | 'house' | 'removeTree' | 'removeHouse' | null;
-  onStickerPlaced: (lat: number, lng: number, type: 'tree' | 'house') => void;
+  placingMode: PlacingMode;
+  onStickerPlaced: (lat: number, lng: number, type: StickerType) => void;
   onClearAll: () => void;
   shouldClearAll: boolean;
   sharedMapCenter?: { lat: number; lng: number };
@@ -291,28 +295,29 @@ const MapPanel = ({
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
 
-    if (placingMode === 'tree' || placingMode === 'house') {
+    // Check if it's a placing mode (not a remove mode)
+    const stickerTypes: StickerType[] = ['tree', 'shrub', 'grass', 'building', 'road', 'waterbody'];
+    if (stickerTypes.includes(placingMode as StickerType)) {
       const newSticker: Sticker = {
         id: `${placingMode}-${Date.now()}`,
         lat,
         lng,
-        type: placingMode,
+        type: placingMode as StickerType,
       };
       setStickers([...stickers, newSticker]);
-      onStickerPlaced(lat, lng, placingMode);
+      onStickerPlaced(lat, lng, placingMode as StickerType);
       console.log(`${placingMode.toUpperCase()} placed at:`, { lat, lng });
     }
   };
 
   // Handle marker click for removal (only for NDVI map)
-  const handleMarkerClick = (stickerId: string, stickerType: 'tree' | 'house') => {
+  const handleMarkerClick = (stickerId: string, stickerType: StickerType) => {
     // Only allow sticker removal on NDVI map
     if (imageryType !== 'ndvi') return;
 
-    if (
-      (placingMode === 'removeTree' && stickerType === 'tree') ||
-      (placingMode === 'removeHouse' && stickerType === 'house')
-    ) {
+    // Check if the placing mode matches the removal mode for this sticker type
+    const removeMode = `remove${stickerType.charAt(0).toUpperCase() + stickerType.slice(1)}` as PlacingMode;
+    if (placingMode === removeMode) {
       setStickers(stickers.filter((s) => s.id !== stickerId));
       console.log(`${stickerType.toUpperCase()} removed:`, stickerId);
     }
@@ -380,6 +385,19 @@ const MapPanel = ({
   const isSatelliteDataError = imageryError?.includes('No valid thermal imagery found') ||
                                 imageryError?.includes('No valid ndvi imagery found') ||
                                 imageryError?.includes('No imagery found');
+
+  // Get icon component and color for each sticker type
+  const getStickerIconComponent = (type: StickerType) => {
+    const iconMap: Record<StickerType, { Icon: any; color: string }> = {
+      tree: { Icon: GiIcons.GiPineTree, color: '#22c55e' },
+      shrub: { Icon: GiIcons.GiFlowerPot, color: '#4ade80' },
+      grass: { Icon: GiIcons.GiGrass, color: '#86efac' },
+      building: { Icon: GiIcons.GiModernCity, color: '#94a3b8' },
+      road: { Icon: GiIcons.GiRoad, color: '#64748b' },
+      waterbody: { Icon: GiIcons.GiWaterDrop, color: '#3b82f6' }
+    };
+    return iconMap[type];
+  };
 
   return (
     <section className={composedClass}>
@@ -520,44 +538,36 @@ const MapPanel = ({
             }}
           >
 
-            {/* Tree and House Markers - Only show on NDVI map */}
-            {imageryType === 'ndvi' && stickers.map((sticker) => (
-              <Marker
-                key={sticker.id}
-                position={{ lat: sticker.lat, lng: sticker.lng }}
-                onClick={() => handleMarkerClick(sticker.id, sticker.type)}
-                icon={{
-                  url: sticker.type === 'tree'
-                    ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
-                        <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                          <feOffset dx="0" dy="2" result="offsetblur"/>
-                          <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
-                          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter></defs>
-                        <circle cx="12" cy="12" r="11" fill="#ffffff" opacity="0.9"/>
-                        <path fill="#22c55e" stroke="#ffffff" stroke-width="2" filter="url(#shadow)" d="M12 2L8 8h2v2H7l-2 3h2v2H5l-2 3h7v6h4v-6h7l-2-3h-2v-2h2l-2-3h-3V8h2z"/>
-                      </svg>
-                    `)
-                    : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
-                        <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                          <feOffset dx="0" dy="2" result="offsetblur"/>
-                          <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
-                          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter></defs>
-                        <circle cx="12" cy="12" r="11" fill="#ffffff" opacity="0.9"/>
-                        <path fill="#3b82f6" stroke="#ffffff" stroke-width="2" filter="url(#shadow)" d="M12 3L4 9v12h16V9l-8-6zm0 2.3L18 10v9h-5v-6h-2v6H6v-9l6-4.7z"/>
-                      </svg>
-                    `),
-                  scaledSize: new google.maps.Size(48, 48),
-                  anchor: new google.maps.Point(24, 24),
-                }}
-                zIndex={1000}
-              />
-            ))}
+            {/* Sticker Markers - Only show on NDVI map */}
+            {imageryType === 'ndvi' && stickers.map((sticker) => {
+              const { Icon, color } = getStickerIconComponent(sticker.type);
+              return (
+                <OverlayView
+                  key={sticker.id}
+                  position={{ lat: sticker.lat, lng: sticker.lng }}
+                  mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                >
+                  <div
+                    onClick={() => handleMarkerClick(sticker.id, sticker.type)}
+                    style={{
+                      position: 'absolute',
+                      transform: 'translate(-50%, -50%)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '48px',
+                      height: '48px',
+                      backgroundColor: 'white',
+                      borderRadius: '50%',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                    }}
+                  >
+                    <Icon size={32} color={color} />
+                  </div>
+                </OverlayView>
+              );
+            })}
           </GoogleMap>
         )}
       </div>

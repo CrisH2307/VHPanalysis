@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import LayoutHeader from './components/LayoutHeader';
 import LeftToolbar from './components/LeftToolbar';
+
+import LayoutHeader from './components/LayoutHeader';
 import MapPanel from './components/MapPanel';
 import ScorePanel from './components/ScorePanel';
 
+type StickerType = 'tree' | 'shrub' | 'grass' | 'building' | 'road' | 'waterbody';
+type PlacingMode = StickerType | `remove${Capitalize<StickerType>}` | null;
 
 const App = () => {
   const [selectedCity, setSelectedCity] = useState('Brampton');
   const [selectedDate, setSelectedDate] = useState('2022-01-01');
-  const [placingMode, setPlacingMode] = useState<'tree' | 'house' | 'removeTree' | 'removeHouse' | null>(null);
+  const [placingMode, setPlacingMode] = useState<PlacingMode>(null);
   const [shouldClearAll, setShouldClearAll] = useState(false);
   const [simulationMode, setSimulationMode] = useState(false);
   const [hasScenarioChanges, setHasScenarioChanges] = useState(false);
@@ -29,14 +32,14 @@ const App = () => {
     console.log('Date changed to:', date);
   };
 
-  const handleSetPlacingMode = (mode: 'tree' | 'house' | 'removeTree' | 'removeHouse' | null) => {
+  const handleSetPlacingMode = (mode: PlacingMode) => {
     setPlacingMode(mode);
   };
 
-  const handleStickerPlaced = (lat: number, lng: number, type: 'tree' | 'house') => {
+  const handleStickerPlaced = (lat: number, lng: number, type: StickerType) => {
     // Log to console (terminal)
     console.log(`${type.toUpperCase()} placed at coordinates:`, { latitude: lat, longitude: lng });
-    setPlacingMode(null); // Turn off placing mode after placing
+    // Keep placing mode active for continuous placement
     setHasScenarioChanges(true);
     setSimulationMessage(null);
   };
@@ -55,7 +58,7 @@ const App = () => {
 
   const toggleSimulationMode = () => {
     if (!hasScenarioChanges) {
-      setSimulationMessage('Add or remove a tree/house before running simulation.');
+      setSimulationMessage('Add or remove a sticker before running simulation.');
       return;
     }
     setSimulationMode((prev) => !prev);

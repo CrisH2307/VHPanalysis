@@ -73,6 +73,7 @@ const MapPanel = ({
   const [stickers, setStickers] = useState<Sticker[]>([]);
   const [imageryData, setImageryData] = useState<ImageryResponse | null>(null);
   const [imageryStatus, setImageryStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [imageryError, setImageryError] = useState<string | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [isUpdatingFromProps, setIsUpdatingFromProps] = useState(false);
 
@@ -206,6 +207,7 @@ const MapPanel = ({
     if (!cityName || !date || !imageryType) {
       setImageryData(null);
       setImageryStatus('idle');
+      setImageryError(null);
       return;
     }
 
@@ -213,6 +215,7 @@ const MapPanel = ({
 
     const fetchImagery = async () => {
       setImageryStatus('loading');
+      setImageryError(null);
 
       try {
         const params = new URLSearchParams({ city: cityName, date });
@@ -229,6 +232,7 @@ const MapPanel = ({
         const imageryResponse = payload as ImageryResponse;
         setImageryData(imageryResponse);
         setImageryStatus('success');
+        setImageryError(null);
 
         console.log(`${imageryLabel} imagery loaded for ${cityName} on ${date}`);
 
@@ -256,6 +260,10 @@ const MapPanel = ({
         if (controller.signal.aborted) return;
         setImageryData(null);
         setImageryStatus('error');
+
+        // Capture the error message
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        setImageryError(errorMessage);
         console.error('Failed to fetch imagery:', error);
       }
     };
@@ -352,6 +360,11 @@ const MapPanel = ({
 
   const composedClass = className ? `${baseClass} ${className}` : baseClass;
 
+  // Check if error is about missing thermal imagery
+  const isSatelliteDataError = imageryError?.includes('No valid thermal imagery found') ||
+                                imageryError?.includes('No valid ndvi imagery found') ||
+                                imageryError?.includes('No imagery found');
+
   return (
     <section className={composedClass}>
       {/* Imagery Status Indicator */}
@@ -360,15 +373,40 @@ const MapPanel = ({
           ✓ {imageryLabel} imagery loaded ({imageryData.image_date})
         </div>
       )}
-      {imageryStatus === 'error' && (
-        <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-          ⚠️ Failed to load {imageryLabel} imagery for this location/date
-        </div>
-      )}
 
       <div className="flex flex-1 items-center justify-center">
-        {/* Show loading screen while imagery is loading or map is loading */}
-        {loadError ? (
+        {/* Show error screen if imagery failed to load */}
+        {imageryStatus === 'error' ? (
+          <div className="flex flex-col items-center justify-center gap-4 text-slate-400" style={{ minHeight: '320px' }}>
+            {/* Satellite Icon (grayed out) */}
+            <div className="relative opacity-50">
+              <img
+                src="/Settilite.png"
+                alt="Satellite"
+                className="h-32 w-32 object-contain grayscale"
+              />
+            </div>
+
+            {/* Error message */}
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div className="flex items-center gap-2 text-red-400">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm font-medium">
+                  {isSatelliteDataError
+                    ? 'Satellite Could Not Retrieve Imagery'
+                    : 'Failed to Load Imagery'}
+                </span>
+              </div>
+              <span className="text-xs opacity-75 max-w-xs">
+                {isSatelliteDataError
+                  ? `No ${imageryLabel} data available for ${cityName} on ${date}. Try a different date or location.`
+                  : `Unable to load ${imageryLabel} imagery. Please check your connection and try again.`}
+              </span>
+            </div>
+          </div>
+        ) : loadError ? (
           <div className="text-sm text-red-500">Error loading maps. Please check your connection.</div>
         ) : !isLoaded || imageryStatus === 'loading' || imageryStatus === 'idle' ? (
           <div className="flex flex-col items-center justify-center gap-4 text-slate-400" style={{ minHeight: '320px' }}>

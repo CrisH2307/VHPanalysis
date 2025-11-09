@@ -200,7 +200,7 @@ def get_heat_map(date, city, session_id: Optional[str] = None):
         store_session_data(session_id, "heat_map", thermal_c, asset_date, bbox)
 
         fig, ax = plt.subplots(figsize=(10, 8))
-        ax.imshow(thermal_c, cmap="inferno")
+        ax.imshow(thermal_c, cmap="inferno", vmin=-10, vmax=40)
         ax.axis("off")
 
         output_path = f"heat_map_{city}_{asset_date}.png"

@@ -127,6 +127,18 @@ def simulate():
             predicted_chunk = model.predict(chunk_tensor, verbose=0)
             predicted_chunk = np.squeeze(predicted_chunk, axis=(0, 3))
 
+            mean_non_zero_ndvi = np.mean(ndvi_chunk[ndvi_chunk != 0])
+            if mean_non_zero_ndvi > 0:
+                predicted_chunk = np.where(predicted_chunk < 0, predicted_chunk * 35, predicted_chunk)
+                predicted_chunk = np.where(predicted_chunk > 0, predicted_chunk * -8, predicted_chunk)
+                print(f"Adjusting vegetation growth: {mean_non_zero_ndvi}")
+            elif mean_non_zero_ndvi < -0.6:
+                print(f"Adjusting water: {mean_non_zero_ndvi}")
+                predicted_chunk = np.abs(predicted_chunk)*-20
+            elif mean_non_zero_ndvi < 0:
+                predicted_chunk = np.where(predicted_chunk > 0, predicted_chunk * 12, predicted_chunk)
+                print(f"Adjusting city: {mean_non_zero_ndvi}")
+
             heat_delta[row : row + tile_size, col : col + tile_size] += predicted_chunk
             heat_weights[row : row + tile_size, col : col + tile_size] += 1.0
 
@@ -139,7 +151,7 @@ def simulate():
     heat_min = float(np.nanmin(heat_delta))
     heat_max = float(np.nanmax(heat_delta))
 
-    heat_delta = np.where(heat_delta < 0, heat_delta * 20, heat_delta)
+    # heat_delta = np.where(heat_delta < 0, heat_delta * 35, heat_delta)
 
     new_heat_map = heat_map + heat_delta
 
@@ -147,7 +159,7 @@ def simulate():
     heat_vmax = float(np.nanmax([np.nanmax(heat_map), np.nanmax(new_heat_map)]))
 
     fig_heat, ax_heat = plt.subplots(figsize=(6, 5))
-    im_new = ax_heat.imshow(new_heat_map, cmap="inferno", vmin=heat_vmin, vmax=heat_vmax)
+    im_new = ax_heat.imshow(new_heat_map, cmap="inferno", vmin=-10, vmax=40)
     ax_heat.axis("off")
 
     buffer = io.BytesIO()
@@ -157,7 +169,7 @@ def simulate():
     buffer.seek(0)
     heat_map_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
-    return jsonify({"heat_map_image": heat_map_base64}), 200
+    return jsonify({"heat_map_image": heat_map_base64, "bbox": bbox}), 200
 
 
 @weakspots_bp.route("", methods=["GET"], strict_slashes=False)

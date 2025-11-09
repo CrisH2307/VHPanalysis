@@ -25,8 +25,8 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
-    # Enable CORS for all routes
-    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+    allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:5173").split(",")
+    CORS(app, resources={r"/*": {"origins": allowed_origins}}, supports_credentials=True)
 
     session_store = InMemorySessionDataStore()
     set_session_data_store(session_store)

@@ -47,7 +47,18 @@ def get_ndvi():
 
     session_id = session.get("session_id")
 
-    image_bytes, image_date, bbox = sat_extract.get_ndvi_map(date, city, session_id=session_id)
+    try:
+        image_bytes, image_date, bbox = sat_extract.get_ndvi_map(date, city, session_id=session_id)
+    except:
+        image_bytes, image_date, bbox = None, None, None
+
+    while image_bytes is None:
+        print("Retrying NDVI map extraction")
+        try:
+            image_bytes, image_date, bbox = sat_extract.get_ndvi_map(date, city, session_id=session_id)
+        except:
+            image_bytes, image_date, bbox = None, None, None
+        time.sleep(1)
 
     if image_bytes is None:
         return jsonify({"error": "No valid NDVI imagery found"}), 404
@@ -64,7 +75,18 @@ def get_heat():
 
     session_id = session.get("session_id")
 
-    image_bytes, image_date, bbox = sat_extract.get_heat_map(date, city, session_id=session_id)
+    try:
+        image_bytes, image_date, bbox = sat_extract.get_heat_map(date, city, session_id=session_id)
+    except RasterioIOError as e:
+        image_bytes, image_date, bbox = None, None, None
+
+    while image_bytes is None:
+        print("Retrying heat map extraction")
+        try:
+            image_bytes, image_date, bbox = sat_extract.get_heat_map(date, city, session_id=session_id)
+        except RasterioIOError as e:
+            image_bytes, image_date, bbox = None, None, None
+        time.sleep(1)
 
     if image_bytes is None:
         return jsonify({"error": "No valid thermal imagery found"}), 404

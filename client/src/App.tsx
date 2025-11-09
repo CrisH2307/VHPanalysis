@@ -30,6 +30,7 @@ const App = () => {
   const [simulatedHeatmap, setSimulatedHeatmap] = useState<string | null>(null);
   const [simulatedBoundingBox, setSimulatedBoundingBox] = useState<number[] | null>(null);
   const [simulatedImageDate, setSimulatedImageDate] = useState<string | null>(null);
+  const [simulationLoaded, setSimulationLoaded] = useState(false);
 
   // Log sticker arrays whenever they change
   useEffect(() => {
@@ -41,6 +42,20 @@ const App = () => {
       console.log('Total stickers:', stickerLats.length);
     }
   }, [stickerLats, stickerLngs, stickerTypes]);
+
+  useEffect(() => {
+    if (cntMapsLoaded < 2) {
+      setSimulationLoaded(false);
+      setSimulationMode(false);
+      setSimulationMessage(null);
+      setSimulatedHeatmap(null);
+      setSimulatedBoundingBox(null);
+      setSimulatedImageDate(null);
+      setStickerLats([]);
+      setStickerLngs([]);
+      setStickerTypes([]);
+    }
+  }, [cntMapsLoaded]);
 
   const mapLoaded = () => {
     console.log('mapLoaded', cntMapsLoaded);
@@ -81,6 +96,7 @@ const App = () => {
     setStickerLngs([]);
     setStickerTypes([]);
     setSimulationMode(false);
+    setSimulationLoaded(false);
     console.log('All stickers cleared');
   };
 
@@ -89,29 +105,20 @@ const App = () => {
   };
 
   const simulate = async () => {
+    if (cntMapsLoaded < 2 || stickerLats.length === 0) {
+      return;
+    }
+    
     // Check if there are scenario changes before allowing simulation
+    setSimulationLoaded(false);
+    setSimulationMode(true);
     if (!hasScenarioChanges) {
       setSimulationMessage('Add or remove a sticker before running simulation.');
       return;
     }
 
-    const newSimulationMode = !simulationMode;
-    console.log('🔄 [App] Toggling simulation mode:', newSimulationMode ? 'ON' : 'OFF');
-    setSimulationMode(newSimulationMode);
-
-    // When simulation is turned OFF, clear the simulated heatmap
-    if (!newSimulationMode) {
-      console.log('🧹 [App] Clearing simulated heatmap');
-      setSimulatedHeatmap(null);
-      setSimulatedBoundingBox(null);
-      setSimulatedImageDate(null);
-      setHasScenarioChanges(false);
-      setSimulationMessage(null);
-      return;
-    }
-
     // When simulation is turned ON, prepare and send data to backend
-    if (newSimulationMode && stickerLats.length > 0) {
+    if (stickerLats.length > 0) {
       console.log('📍 [App] Number of stickers to simulate:', stickerLats.length);
 
       // Convert singular types to plural for backend
@@ -150,6 +157,7 @@ const App = () => {
         console.log('📡 [App] Response status:', response.status, response.statusText);
 
         if (response.ok) {
+          setSimulationLoaded(true);
           const result = await response.json();
           console.log('✅ [App] Simulation response received');
           console.log('📊 [App] Response keys:', Object.keys(result));
@@ -157,12 +165,8 @@ const App = () => {
           // Store the heat_map_image, bounding_box, and image_date from result
           if (result.heat_map_image) {
             setSimulatedHeatmap(result.heat_map_image);
-            setSimulatedBoundingBox(result.bounding_box || null);
+            setSimulatedBoundingBox(result.bbox || null);
             setSimulatedImageDate(result.image_date || null);
-            console.log('✅ [App] Simulated heat map stored! Image length:', result.heat_map_image.length, 'characters');
-            console.log('📍 [App] Bounding box:', result.bounding_box);
-            console.log('📅 [App] Image date:', result.image_date);
-            console.log('🗺️ [App] Map 2 (Simulated) will now display the NEW simulated heat map');
           } else {
             console.warn('⚠️ [App] No heat_map_image in response');
           }
@@ -174,8 +178,6 @@ const App = () => {
         console.error('❌ [App] Error sending simulation data:', error);
       }
 
-    } else if (newSimulationMode && stickerLats.length === 0) {
-      console.warn('⚠️ [App] No stickers placed. Add stickers before running simulation.');
     }
   };
 
@@ -271,6 +273,9 @@ const App = () => {
                       onMapZoomChange={setSharedMapZoom}
                       cntMapsLoaded={cntMapsLoaded}
                       mapLoaded={mapLoaded}
+                      simulationLoaded={simulationLoaded}
+                      simulatedHeatmap={simulatedHeatmap}
+                      simulatedBoundingBox={simulatedBoundingBox}
                       className="h-full flex-1"
                     />
                 </div>

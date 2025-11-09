@@ -37,6 +37,9 @@ type MapPanelProps = {
   overlayOpacity?: number;
   onOverlayOpacityChange?: (value: number) => void;
   showOpacityControl?: boolean;
+  simulatedHeatmap?: any;
+  simulatedBoundingBox?: number[] | null;
+  simulationLoaded?: boolean;
 };
 
 // Google Maps API Key
@@ -82,6 +85,9 @@ const MapPanel = ({
   showOpacityControl = false,
   cntMapsLoaded,
   mapLoaded,
+  simulatedHeatmap,
+  simulatedBoundingBox,
+  simulationLoaded,
 }: MapPanelProps) => {
   const [mapCenter, setMapCenter] = useState(sharedMapCenter || CITY_COORDINATES[cityName] || CITY_COORDINATES.Toronto);
   const [mapZoom, setMapZoom] = useState(sharedMapZoom || 11);
@@ -219,6 +225,36 @@ const MapPanel = ({
     };
   }, []);
 
+  useEffect(() => {
+    console.log('simulatedBoundingBox', simulatedBoundingBox);
+    console.log('simulatedHeatmap', simulatedHeatmap);
+    console.log('simulationLoaded', simulationLoaded);
+    if (simulatedBoundingBox && simulatedHeatmap && simulationLoaded) {
+      const [lon_min, lat_min, lon_max, lat_max] = simulatedBoundingBox;
+      const centerLat = (lat_min + lat_max) / 2;
+      const centerLng = (lon_min + lon_max) / 2;
+      setMapCenter({ lat: centerLat, lng: centerLng });
+
+      const latDiff = lat_max - lat_min;
+      const lngDiff = lon_max - lon_min;
+      const maxDiff = Math.max(latDiff, lngDiff);
+
+      let newZoom = 11;
+      if (maxDiff < 0.1) newZoom = 13;
+      else if (maxDiff < 0.2) newZoom = 12;
+      else if (maxDiff < 0.5) newZoom = 11;
+      else if (maxDiff < 1) newZoom = 10;
+      else newZoom = 9;
+
+      setMapZoom(newZoom + 0.5);
+      setImageryData({
+        image: simulatedHeatmap,
+        bounding_box: simulatedBoundingBox as [number, number, number, number],
+        image_date: new Date().toISOString(),
+      });
+    }
+  }, [simulatedBoundingBox, simulatedHeatmap, simulationLoaded])
+
   // Fetch imagery when city, date, or type changes
   useEffect(() => {
     if (!cityName || !date || !imageryType) {
@@ -238,6 +274,7 @@ const MapPanel = ({
         const params = new URLSearchParams({ city: cityName, date });
         const response = await fetch(`${API_BASE_URL}/imagery/${imageryType}?${params.toString()}`, {
           signal: controller.signal,
+          credentials: 'include',
         });
         const payload = await response.json().catch(() => null);
 
@@ -255,7 +292,7 @@ const MapPanel = ({
         console.log(`${imageryLabel} imagery loaded for ${cityName} on ${date}`);
 
         // Recenter map to the imagery bounding box and adjust zoom
-        if (imageryResponse.bounding_box) {
+        if (imageryResponse.bounding_box && imageryType !== 'simulated_heat') {
           const [lon_min, lat_min, lon_max, lat_max] = imageryResponse.bounding_box;
           const centerLat = (lat_min + lat_max) / 2;
           const centerLng = (lon_min + lon_max) / 2;
@@ -465,7 +502,7 @@ const MapPanel = ({
             </div>
           ) : loadError ? (
             <div className="text-sm text-red-500">Error loading maps. Please check your connection.</div>
-          ) : !isLoaded || imageryStatus === 'loading' || imageryStatus === 'idle' || cntMapsLoaded < 2 ? (
+          ) : ((!isLoaded || imageryStatus === 'loading' || imageryStatus === 'idle' || cntMapsLoaded < 2 ) && imageryType !== 'simulated_heat') || (!simulationLoaded && imageryType === 'simulated_heat') ? (
               imageryType === 'simulated_heat' ? (
                 <div className="flex flex-col items-center justify-center gap-4 text-slate-400 h-full w-full">
                 {/* Satellite Image */}

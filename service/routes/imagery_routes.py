@@ -78,14 +78,14 @@ def get_heat():
 
     try:
         image_bytes, image_date, bbox = sat_extract.get_heat_map(date, city, session_id=session_id)
-    except RasterioIOError as e:
+    except:
         image_bytes, image_date, bbox = None, None, None
 
     while image_bytes is None:
         print("Retrying heat map extraction")
         try:
             image_bytes, image_date, bbox = sat_extract.get_heat_map(date, city, session_id=session_id)
-        except RasterioIOError as e:
+        except:
             image_bytes, image_date, bbox = None, None, None
         time.sleep(1)
 

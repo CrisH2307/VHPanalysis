@@ -98,6 +98,9 @@ const MapPanel = ({
   const [imageryError, setImageryError] = useState<string | null>(null);
   const [stickers, setStickers] = useState<Sticker[]>([]);
 
+  // Human-readable label for imagery type
+  const imageryLabel = imageryType === 'heat' ? 'LST (Land Surface Temperature)' : imageryType?.toUpperCase();
+
   // Use refs to track the latest values without causing re-renders
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastCenterRef = useRef<{ lat: number; lng: number } | null>(null);
@@ -181,9 +184,6 @@ const MapPanel = ({
       overlay.setMap(null);
     };
   }, [map, imageryData, overlayOpacity]);
-
-  // Human-readable label for imagery type
-  const imageryLabel = imageryType === 'heat' ? 'LST (Land Surface Temperature)' : imageryType?.toUpperCase();
 
   // Sync with shared map center
   useEffect(() => {
@@ -357,6 +357,7 @@ const MapPanel = ({
           const centerLat = (lat_min + lat_max) / 2;
           const centerLng = (lon_min + lon_max) / 2;
           setMapCenter({ lat: centerLat, lng: centerLng });
+          onMapCenterChange?.({ lat: centerLat, lng: centerLng });
 
           const latDiff = lat_max - lat_min;
           const lngDiff = lon_max - lon_min;
